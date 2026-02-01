@@ -1,50 +1,109 @@
-# Building a Remote MCP Server on Cloudflare (Without Auth)
+# arXiv MCP Server
 
-This example allows you to deploy a remote MCP server that doesn't require authentication on Cloudflare Workers. 
+Claude Desktop から arXiv の論文を検索・取得できる MCP リモートサーバーです。
+Cloudflare Workers 上で動作し、認証不要で誰でも利用できます。
 
-## Get started: 
+An MCP remote server that lets you search and retrieve arXiv papers directly from Claude Desktop.
+Runs on Cloudflare Workers with no authentication required.
 
-[![Deploy to Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless)
+---
 
-This will deploy your MCP server to a URL like: `remote-mcp-server-authless.<your-account>.workers.dev/sse`
+## Tools / ツール一覧
 
-Alternatively, you can use the command line below to get the remote MCP Server created on your local machine:
-```bash
-npm create cloudflare@latest -- my-mcp-server --template=cloudflare/ai/demos/remote-mcp-authless
+| Tool | Description |
+|------|-------------|
+| `search_papers` | キーワード・著者・カテゴリで論文を検索 / Search papers by keyword, author, or category |
+| `get_paper` | arXiv ID を指定して論文の詳細を取得 / Get paper details by arXiv ID |
+| `get_recent_papers` | 指定カテゴリの最新論文を取得 / Get latest papers in a category |
+
+---
+
+## Setup / セットアップ
+
+### Claude Desktop (Connectors)
+
+最も簡単な接続方法です。 / The simplest way to connect.
+
+1. Claude Desktop を開く / Open Claude Desktop
+2. **Settings → Connectors** を開く / Go to **Settings → Connectors**
+3. 以下の URL を追加 / Add the following URL:
+
+```
+https://arxiv-mcp-server.noisy-brook-6917.workers.dev/mcp
 ```
 
-## Customizing your MCP Server
+4. Claude を再起動 / Restart Claude
 
-To add your own [tools](https://developers.cloudflare.com/agents/model-context-protocol/tools/) to the MCP server, define each tool inside the `init()` method of `src/index.ts` using `this.server.tool(...)`. 
+### Claude Desktop (claude_desktop_config.json)
 
-## Connect to Cloudflare AI Playground
+設定ファイルから接続する場合は `mcp-remote` プロキシを使用します。
+To connect via config file, use the `mcp-remote` proxy.
 
-You can connect to your MCP server from the Cloudflare AI Playground, which is a remote MCP client:
-
-1. Go to https://playground.ai.cloudflare.com/
-2. Enter your deployed MCP server URL (`remote-mcp-server-authless.<your-account>.workers.dev/sse`)
-3. You can now use your MCP tools directly from the playground!
-
-## Connect Claude Desktop to your MCP server
-
-You can also connect to your remote MCP server from local MCP clients, by using the [mcp-remote proxy](https://www.npmjs.com/package/mcp-remote). 
-
-To connect to your MCP server from Claude Desktop, follow [Anthropic's Quickstart](https://modelcontextprotocol.io/quickstart/user) and within Claude Desktop go to Settings > Developer > Edit Config.
-
-Update with this configuration:
+**Settings → Developer → Edit Config** を開き、以下を追加:
+Open **Settings → Developer → Edit Config** and add:
 
 ```json
 {
   "mcpServers": {
-    "calculator": {
+    "arxiv": {
       "command": "npx",
       "args": [
         "mcp-remote",
-        "http://localhost:8787/sse"  // or remote-mcp-server-authless.your-account.workers.dev/sse
+        "https://arxiv-mcp-server.noisy-brook-6917.workers.dev/mcp"
       ]
     }
   }
 }
 ```
 
-Restart Claude and you should see the tools become available. 
+Claude を再起動すると、ツールが利用可能になります。
+Restart Claude and the tools will become available.
+
+---
+
+## Usage Examples / 使用例
+
+Claude に以下のように質問するだけで論文を検索できます。
+Simply ask Claude to search for papers:
+
+- 「Transformer に関する最新の論文を5件教えて」
+- "Find the latest 5 papers about Transformers"
+- 「arXiv ID 1706.03762 の論文の詳細を教えて」
+- "Show me details for arXiv paper 1706.03762"
+- 「cs.AI カテゴリの最新論文を見せて」
+- "What are the newest papers in cs.AI?"
+
+---
+
+## Self-hosting / セルフホスト
+
+自分の Cloudflare アカウントにデプロイすることもできます。
+You can also deploy to your own Cloudflare account.
+
+```bash
+git clone https://github.com/hosokai-efil/arxiv-mcp-server.git
+cd arxiv-mcp-server
+npm install
+npx wrangler login
+npx wrangler deploy
+```
+
+デプロイ後、発行された URL の末尾に `/mcp` を付けて Claude Desktop に登録してください。
+After deployment, register the issued URL with `/mcp` appended in Claude Desktop.
+
+---
+
+## Tech Stack / 技術スタック
+
+| Component | Technology |
+|-----------|-----------|
+| Runtime | Cloudflare Workers |
+| Language | TypeScript |
+| Protocol | Streamable HTTP (`/mcp`) |
+| Data Source | [arXiv API](https://info.arxiv.org/help/api/index.html) |
+
+---
+
+## License
+
+MIT
