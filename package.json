@@ -1,0 +1,20 @@
+{
+	"name": "arxiv-mcp-server",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"cf-typegen": "wrangler types",
+		"type-check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"agents": "^0.3.6",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"typescript": "5.9.3",
+		"wrangler": "^4.61.0"
+	}
+}
